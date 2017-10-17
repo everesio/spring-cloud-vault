@@ -86,6 +86,8 @@ public class VaultProperties implements EnvironmentAware {
 
 	private AwsEc2Properties awsEc2 = new AwsEc2Properties();
 
+	private KubernetesProperties kubernetes = new KubernetesProperties();
+
 	private Ssl ssl = new Ssl();
 
 	private Config config = new Config();
@@ -223,6 +225,17 @@ public class VaultProperties implements EnvironmentAware {
 		private String certAuthPath = "cert";
 	}
 
+
+	@Data
+	public static class KubernetesProperties {
+
+		private String kubernetesPath = "kubernetes";
+
+		private String tokenFile = "/var/run/secrets/kubernetes.io/serviceaccount/token";
+
+		private String role = null;
+	}
+
 	@Data
 	public static class Config {
 
@@ -251,6 +264,6 @@ public class VaultProperties implements EnvironmentAware {
 	}
 
 	public enum AuthenticationMethod {
-		TOKEN, APPID, APPROLE, AWS_EC2, CERT, CUBBYHOLE;
+		TOKEN, APPID, APPROLE, AWS_EC2, CERT, CUBBYHOLE, KUBERNETES;
 	}
 }

@@ -15,9 +15,6 @@
  */
 package org.springframework.cloud.vault.config;
 
-import java.net.URI;
-import java.util.Collection;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -50,12 +47,15 @@ import org.springframework.vault.authentication.ClientCertificateAuthentication;
 import org.springframework.vault.authentication.CubbyholeAuthentication;
 import org.springframework.vault.authentication.CubbyholeAuthenticationOptions;
 import org.springframework.vault.authentication.IpAddressUserId;
+import org.springframework.vault.authentication.KubernetesAuthentication;
+import org.springframework.vault.authentication.KubernetesAuthenticationOptions;
 import org.springframework.vault.authentication.LifecycleAwareSessionManager;
 import org.springframework.vault.authentication.MacAddressUserId;
 import org.springframework.vault.authentication.SessionManager;
 import org.springframework.vault.authentication.SimpleSessionManager;
 import org.springframework.vault.authentication.StaticUserId;
 import org.springframework.vault.authentication.TokenAuthentication;
+import org.springframework.vault.authentication.TokenFile;
 import org.springframework.vault.client.VaultClients;
 import org.springframework.vault.client.VaultEndpoint;
 import org.springframework.vault.config.AbstractVaultConfiguration.ClientFactoryWrapper;
@@ -67,6 +67,9 @@ import org.springframework.vault.support.ClientOptions;
 import org.springframework.vault.support.SslConfiguration;
 import org.springframework.vault.support.VaultToken;
 import org.springframework.web.client.RestOperations;
+
+import java.net.URI;
+import java.util.Collection;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for Spring Vault support.
@@ -286,6 +289,8 @@ public class VaultBootstrapConfiguration implements InitializingBean {
 		case CUBBYHOLE:
 			return cubbyholeAuthentication();
 
+		case KUBERNETES:
+			return kuberentesAuthentication(vaultProperties);
 		}
 
 		throw new UnsupportedOperationException(
@@ -355,6 +360,20 @@ public class VaultBootstrapConfiguration implements InitializingBean {
 
 		return new AppRoleAuthentication(builder.build(), restOperations);
 	}
+
+	private ClientAuthentication kuberentesAuthentication(VaultProperties vaultProperties) {
+
+		VaultProperties.KubernetesProperties kubernetes = vaultProperties.getKubernetes();
+		Assert.hasText(kubernetes.getRole(),
+				"Role (spring.cloud.vault.kubernetes.role) must not be empty");
+
+		KubernetesAuthenticationOptions.KubernetesAuthenticationOptionsBuilder builder = KubernetesAuthenticationOptions
+				.builder().role(kubernetes.getRole())
+				.jwtProvider(new TokenFile(kubernetes.getTokenFile()));
+
+		return new KubernetesAuthentication(builder.build(), restOperations);
+	}
+
 
 	private ClientAuthentication awsEc2Authentication(VaultProperties vaultProperties) {
 
