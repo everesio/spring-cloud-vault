@@ -35,10 +35,14 @@ ${CMD_KUBECTL} expose deployment hello-minikube --type=NodePort
 
 # Wait for service to be ready
 echo "Wait for hello-minikube service to be ready"
-HELLO_MINIKUBE_URL=$(${CMD_MINIKUBE} service hello-minikube --url)
-while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' ${HELLO_MINIKUBE_URL})" != "200" ]]; do
-    sleep 3
-done
+HELLO_MINIKUBE_URL=$(${CMD_MINIKUBE} service hello-minikube --url --interval 5 --wait 120)
+if [ $? != 0 ] ; then
+   echo "Error during service startup"
+   echo "In case of DNS problems try 'VBoxManage modifyvm minikube --natdnshostresolver1 on'"
+   # kubectl get pod -> STATUS: ContainerCreating
+   exit 1
+fi
+echo "HELLO_MINIKUBE_URL ${HELLO_MINIKUBE_URL}"
 
 # Copy service account token
 POD_NAME=$(${CMD_KUBECTL} get pod --selector=run=hello-minikube -o jsonpath='{.items..metadata.name}')
