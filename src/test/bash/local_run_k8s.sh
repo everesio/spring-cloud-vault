@@ -29,6 +29,9 @@ fi
 export MINIKUBE_IP=$(${CMD_MINIKUBE} ip)
 echo "MINIKUBE_IP ${MINIKUBE_IP}"
 
+# ensure kubectl context is not stale
+${CMD_MINIKUBE} update-context
+
 # https://kubernetes.io/docs/getting-started-guides/minikube/
 ${CMD_KUBECTL} run hello-minikube --image=gcr.io/google_containers/echoserver:1.4 --port=8080
 ${CMD_KUBECTL} expose deployment hello-minikube --type=NodePort
@@ -54,6 +57,10 @@ fi
 
 # Copy ca cert
 cp $HOME/.minikube/ca.crt work/minikube
+if [ $? != 0 ] ; then
+   echo "Error while copying minikube ca.crt "
+   exit 1
+fi
 
 #BASEDIR=`dirname $0`/../../..
 #sh <(

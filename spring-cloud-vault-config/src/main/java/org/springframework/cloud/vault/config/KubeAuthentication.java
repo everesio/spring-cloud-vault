@@ -18,8 +18,6 @@ package org.springframework.cloud.vault.config;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.util.Assert;
 import org.springframework.vault.VaultException;
 import org.springframework.vault.authentication.ClientAuthentication;
@@ -42,8 +40,6 @@ import org.springframework.web.client.RestOperations;
  * Kubernetes</a>
  */
 class KubeAuthentication implements ClientAuthentication {
-
-	private static final Log logger = LogFactory.getLog(KubeAuthentication.class);
 
 	private final KubeAuthenticationOptions options;
 
@@ -95,8 +91,6 @@ class KubeAuthentication implements ClientAuthentication {
 
 			Assert.state(response != null && response.getAuth() != null,
 					"Auth field must not be null");
-
-			logger.debug("Login successful using Kubernetes authentication");
 
 			return from(response.getAuth());
 		}
