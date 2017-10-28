@@ -54,6 +54,10 @@ fi
 
 # Copy ca cert
 cp $HOME/.minikube/ca.crt work/minikube
+if [ $? != 0 ] ; then
+   echo "Error while copying minikube ca.crt "
+   exit 1
+fi
 
 #BASEDIR=`dirname $0`/../../..
 #sh <(
