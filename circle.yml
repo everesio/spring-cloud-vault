@@ -4,7 +4,9 @@ general:
       - gh-pages # list of branches to ignore
 
 machine:
+  enabled: true
   services:
+    - docker # Minikube also supports a --vm-driver=none option that runs the Kubernetes components on the host and not in a VM. Docker is required to use this driver but no hypervisor.
     - rabbitmq-server
   java:
     version: oraclejdk8
@@ -35,21 +37,24 @@ database:
     - apache-cassandra-2.2.8/bin/cqlsh localhost -u cassandra -p cassandra -e "CREATE USER 'springvault' WITH PASSWORD 'springvault' SUPERUSER"
     - src/test/bash/install_vault.sh
     - src/test/bash/install_consul.sh
+    - src/test/bash/minikube_ci_initialize.sh
 
 test:
   pre:
     - src/test/bash/create_certificates.sh
+    - src/test/bash/local_run_k8s.sh "./minikube" "./kubectl"
     - src/test/bash/local_run_vault.sh:
         background: true
     - src/test/bash/local_run_consul.sh:
         background: true
   override:
-    - ./mvnw -s .settings.xml clean install -U -P sonar -nsu -B -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+    - ./mvnw -s .settings.xml clean install -U -P sonar -nsu -B -DMINIKUBE_IP=$(./minikube ip) -Dmaven.test.redirectTestOutputToFile=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
     - ./mvnw -s .settings.xml org.jacoco:jacoco-maven-plugin:report -U -P sonar -Djacoco.dataFile=$(pwd)/target/jacoco.exec
   post:
     - apache-cassandra-2.2.8/bin/nodetool stopdaemon || true
     - pkill vault || true
     - pkill consul || true
+    - sudo -E ./minikube stop || true
     - find . -type f -regex ".*/spring-cloud-*.*/target/*.*" | cpio -pdm $CIRCLE_ARTIFACTS
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
     - find . -type f -regex ".*/target/.*-reports/.*" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;

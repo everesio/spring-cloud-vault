@@ -32,6 +32,8 @@ export KUBECONFIG=$HOME/.kube/config
 # -- kubernetes-version - option for the kubernetes version that the minikube VM will use  e.g. minikube start --kubernetes-version=v1.7.0
 # -- minikube get-k8s-versions - gets the list of available kubernetes versions available for minikube.
 sudo -E ./minikube start --vm-driver=none --extra-config=apiserver.InsecureServingOptions.BindAddress="127.0.0.1" --extra-config=apiserver.InsecureServingOptions.BindPort="8080"
+# ensure kubectl context is not stale
+./minikube update-context
 
 # this for loop waits until kubectl can access the api server that minikube has created
 KUBECTL_UP="false"
