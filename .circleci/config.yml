@@ -1,0 +1,14 @@
+version: 2
+
+jobs:
+  build:
+    machine: true
+    steps:
+      - checkout
+      - run: mkdir -p work
+      - run: src/test/bash/install_vault.sh
+      - run:
+          name: "Start minikube"
+          command: |
+            src/test/bash/minikube_ci_initialize.sh
+            src/test/bash/local_run_k8s.sh "sudo -E ./minikube" "sudo -E ./kubectl"
